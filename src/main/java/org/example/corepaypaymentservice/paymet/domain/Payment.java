@@ -1,0 +1,50 @@
+package org.example.corepaypaymentservice.paymet.domain;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
+public class Payment {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private Long orderId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentState state;
+
+    @CreatedDate
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column
+    private LocalDateTime updatedAt;
+
+    @Builder
+    private Payment(Long orderId){
+        this.orderId = orderId;
+        this.state = PaymentState.READY;
+    }
+
+
+    public void updateState (@NotNull PaymentState state){
+        this.state = state;
+    }
+}
