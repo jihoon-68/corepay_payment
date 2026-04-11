@@ -1,13 +1,12 @@
-package org.example.corepaypaymentservice.paymet.infrastructure.kafka;
+package org.example.corepaypaymentservice.payment.infrastructure.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.corepaypaymentservice.paymet.infrastructure.kafka.event.OrderCancelEvent;
-import org.example.corepaypaymentservice.paymet.infrastructure.kafka.event.PaymentCancelEvent;
-import org.example.corepaypaymentservice.paymet.infrastructure.kafka.event.PaymentCompletedEvent;
-import org.example.corepaypaymentservice.paymet.infrastructure.kafka.event.PaymentFailedEvent;
+import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentCancelEvent;
+import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentCompletedEvent;
+import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentFailedEvent;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 

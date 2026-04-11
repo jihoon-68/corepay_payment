@@ -3,11 +3,8 @@ package org.example.corepaypaymentservice.payment.infrastructure.kafka.event;
 import lombok.Builder;
 
 @Builder
-public record OrderCreatedEvent(
+public record OrderCancelEvent(
         Long orderId,
-        Long userId,
-        Long productId,
-        Integer totalPrice,
-        Integer amount
+        String reason
 ) {
 }
