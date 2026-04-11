@@ -43,8 +43,9 @@ public class Payment {
         this.state = PaymentState.READY;
     }
 
+    public void success(){ this.state = PaymentState.SUCCESS;}
 
-    public void updateState (@NotNull PaymentState state){
-        this.state = state;
-    }
+    public void failed(){this.state = PaymentState.FAILED;}
+
+    public void canceled(){this.state = PaymentState.CANCELED;}
 }

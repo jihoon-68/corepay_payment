@@ -14,7 +14,7 @@ public record PaymentDto(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static PaymentDto of(Payment payment){
+    public static PaymentDto from(Payment payment){
         return PaymentDto.builder()
                 .id(payment.getId())
                 .orderId(payment.getOrderId())
