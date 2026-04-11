@@ -1,8 +1,8 @@
-package org.example.corepaypaymentservice.paymet.presentation.dto.res;
+package org.example.corepaypaymentservice.payment.presentation.dto.res;
 
 import lombok.Builder;
-import org.example.corepaypaymentservice.paymet.domain.Payment;
-import org.example.corepaypaymentservice.paymet.domain.PaymentState;
+import org.example.corepaypaymentservice.payment.domain.Payment;
+import org.example.corepaypaymentservice.payment.domain.PaymentState;
 
 import java.time.LocalDateTime;
 

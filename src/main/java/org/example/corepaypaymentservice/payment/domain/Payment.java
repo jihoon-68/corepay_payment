@@ -1,7 +1,6 @@
-package org.example.corepaypaymentservice.paymet.domain;
+package org.example.corepaypaymentservice.payment.domain;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

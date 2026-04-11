@@ -1,4 +1,4 @@
-package org.example.corepaypaymentservice.paymet.domain;
+package org.example.corepaypaymentservice.payment.domain;
 
 public enum PaymentState {
     READY,

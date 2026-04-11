@@ -1,9 +1,9 @@
-package org.example.corepaypaymentservice.paymet.application;
+package org.example.corepaypaymentservice.payment.application;
 
-import org.example.corepaypaymentservice.paymet.application.command.CancelPaymentCommand;
-import org.example.corepaypaymentservice.paymet.application.command.CreatedPaymentCommand;
-import org.example.corepaypaymentservice.paymet.application.command.ProcessPaymentCommand;
-import org.example.corepaypaymentservice.paymet.presentation.dto.res.PaymentDto;
+import org.example.corepaypaymentservice.payment.application.command.CancelPaymentCommand;
+import org.example.corepaypaymentservice.payment.application.command.CreatedPaymentCommand;
+import org.example.corepaypaymentservice.payment.application.command.ProcessPaymentCommand;
+import org.example.corepaypaymentservice.payment.presentation.dto.res.PaymentDto;
 
 import java.util.List;
 

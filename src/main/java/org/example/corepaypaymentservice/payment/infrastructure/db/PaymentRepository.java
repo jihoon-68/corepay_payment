@@ -1,6 +1,6 @@
-package org.example.corepaypaymentservice.paymet.infrastructure.db;
+package org.example.corepaypaymentservice.payment.infrastructure.db;
 
-import org.example.corepaypaymentservice.paymet.domain.Payment;
+import org.example.corepaypaymentservice.payment.domain.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

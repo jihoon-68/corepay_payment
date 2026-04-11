@@ -1,9 +1,8 @@
-package org.example.corepaypaymentservice.paymet.presentation;
+package org.example.corepaypaymentservice.payment.presentation;
 
 import lombok.RequiredArgsConstructor;
-import org.example.corepaypaymentservice.paymet.presentation.dto.req.PaymentUpdateStateReq;
-import org.example.corepaypaymentservice.paymet.presentation.dto.res.PaymentDto;
-import org.example.corepaypaymentservice.paymet.application.PaymentService;
+import org.example.corepaypaymentservice.payment.presentation.dto.res.PaymentDto;
+import org.example.corepaypaymentservice.payment.application.PaymentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
