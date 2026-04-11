@@ -21,6 +21,9 @@ repositories {
 dependencies {
 // 1. Web & Virtual Threads
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-aop:3.2.4'
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
     // 2. Data & JPA
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -42,6 +45,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-kafka'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
 
+    // 레디스
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // 카프카
+    implementation 'org.springframework.boot:spring-boot-starter-kafka'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+
     // 5. 편의성 및 검증
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     compileOnly 'org.projectlombok:lombok'
@@ -54,6 +64,9 @@ dependencies {
     // 7. Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    runtimeOnly 'com.h2database:h2'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 tasks.named('test') {
