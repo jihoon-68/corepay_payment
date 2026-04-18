@@ -1,10 +1,11 @@
 package org.example.corepaypaymentservice.payment.application;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.corepaypaymentservice.payment.application.command.CancelPaymentCommand;
 import org.example.corepaypaymentservice.payment.application.command.CreatedPaymentCommand;
 import org.example.corepaypaymentservice.payment.application.command.ProcessPaymentCommand;
-import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentCancelEvent;
+import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentRefundEvent;
 import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentCompletedEvent;
 import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentFailedEvent;
 import org.example.corepaypaymentservice.payment.presentation.dto.res.PaymentDto;
@@ -17,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BasicPaymentService implements PaymentService{
@@ -56,7 +57,7 @@ public class BasicPaymentService implements PaymentService{
                 payment.failed();
                 PaymentFailedEvent event = PaymentFailedEvent.builder()
                         .orderId(payment.getOrderId())
-                        .reason("PG사 결제 승인 거절")
+                        .reason(CancelReason.PAYMENT_FAILED)
                         .build();
 
                 publisher.publishEvent(event);
@@ -67,9 +68,9 @@ public class BasicPaymentService implements PaymentService{
             payment.failed();
             PaymentFailedEvent event = PaymentFailedEvent.builder()
                     .orderId(payment.getOrderId())
-                    .reason("결제 시스템 통신 에러: " + e.getMessage())
+                    .reason(CancelReason.PAYMENT_FAILED)
                     .build();
-
+            log.info("결제 시스템 통신 에러: {}", e.getMessage());
             publisher.publishEvent(event);
         }
         paymentRepository.save(payment);
@@ -82,9 +83,10 @@ public class BasicPaymentService implements PaymentService{
                 .orElseThrow(()-> new RuntimeException("환불할 주문을 찾을 수 없습니다. OrderId: "+command.orderId()));
 
         payment.canceled();
-        PaymentCancelEvent event = PaymentCancelEvent.builder().orderId(command.orderId()).build();
-
-        publisher.publishEvent(event);
+        if (command.reason().isNeedStockRestore()){
+            PaymentRefundEvent event = PaymentRefundEvent.builder().orderId(command.orderId()).build();
+            publisher.publishEvent(event);
+        }
         paymentRepository.save(payment);
     }
 

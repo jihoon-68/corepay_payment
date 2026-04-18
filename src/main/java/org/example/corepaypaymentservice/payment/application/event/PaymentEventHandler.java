@@ -3,7 +3,7 @@ package org.example.corepaypaymentservice.payment.application.event;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.corepaypaymentservice.payment.infrastructure.kafka.PaymentEventProducer;
-import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentCancelEvent;
+import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentRefundEvent;
 import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentCompletedEvent;
 import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentFailedEvent;
 import org.springframework.stereotype.Component;
@@ -30,7 +30,7 @@ public class PaymentEventHandler {
 
     // 3. 결제 취소 결과 오더 서버로 발송
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void PaymentCancelEvent(PaymentCancelEvent event){
+    public void PaymentCancelEvent(PaymentRefundEvent event){
         producer.sendPaymentCancelEvent(event);
     }
 }

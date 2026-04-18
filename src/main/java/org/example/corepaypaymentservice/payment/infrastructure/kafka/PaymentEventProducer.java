@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentCancelEvent;
+import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentRefundEvent;
 import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentCompletedEvent;
 import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentFailedEvent;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -29,8 +29,8 @@ public class PaymentEventProducer {
     }
 
     // 3. 결제 취소 결과 오더 서버로 발송
-    public void sendPaymentCancelEvent(PaymentCancelEvent event){
-        sendMessage("payment-cancel-topic", event);
+    public void sendPaymentCancelEvent(PaymentRefundEvent event){
+        sendMessage("payment-refund-topic", event);
     }
 
     private void sendMessage(String topic, Object event) {

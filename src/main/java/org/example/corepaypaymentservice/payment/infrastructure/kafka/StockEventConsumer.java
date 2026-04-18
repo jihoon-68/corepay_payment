@@ -8,7 +8,7 @@ import org.example.corepaypaymentservice.payment.application.PaymentService;
 import org.example.corepaypaymentservice.payment.application.command.CancelPaymentCommand;
 import org.example.corepaypaymentservice.payment.application.command.CreatedPaymentCommand;
 import org.example.corepaypaymentservice.payment.application.command.ProcessPaymentCommand;
-import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.OrderCancelEvent;
+import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentCancelEvent;
 import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.OrderCreatedEvent;
 import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.StockDecrementedEvent;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -64,14 +64,19 @@ public class StockEventConsumer {
         }
     }
 
-    //차감 실패
-    @KafkaListener(topics = "order-cancel-topic", groupId = "payment-group")
+    // 오더 서버가 발행한 결재 취소 이벤트 수신
+    @KafkaListener(topics = "payment-cancel-topic", groupId = "payment-group")
     public void consumeOrderCancelEvent(String message){
         try{
-            OrderCancelEvent event = objectMapper.readValue(message, OrderCancelEvent.class);
+            PaymentCancelEvent event = objectMapper.readValue(message, PaymentCancelEvent.class);
 
             log.info("[카프카 수신] 주문 취소 확인. 결제 취소를 진행합니다. 주문 ID: {}", event.orderId());
-            CancelPaymentCommand command = CancelPaymentCommand.builder().orderId(event.orderId()).build();
+
+            CancelPaymentCommand command = CancelPaymentCommand.builder()
+                    .orderId(event.orderId())
+                    .reason(event.reason())
+                    .build();
+
             paymentService.cancelPayment(command);
 
         }catch (JsonProcessingException e) {
