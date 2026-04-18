@@ -4,7 +4,7 @@ import lombok.Builder;
 import org.example.corepaypaymentservice.payment.application.CancelReason;
 
 @Builder
-public record OrderCancelEvent(
+public record PaymentCancelEvent(
         Long orderId,
         CancelReason reason
 ) {
