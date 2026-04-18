@@ -1,9 +1,11 @@
 package org.example.corepaypaymentservice.payment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.corepaypaymentservice.payment.application.CancelReason;
 import org.example.corepaypaymentservice.payment.domain.Payment;
 import org.example.corepaypaymentservice.payment.domain.PaymentState;
 import org.example.corepaypaymentservice.payment.infrastructure.db.PaymentRepository;
+import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentCancelEvent;
 import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.StockDecrementedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -57,14 +59,14 @@ public class PaymentCancelIntegrationTest {
 
     // 💡 가짜 컨슈머: 이번에는 오더 서버의 '주문 취소(보상)' 토픽을 구독합니다.
     // 주의: 성공 테스트와 groupId를 다르게 주는 것이 충돌 방지에 좋습니다.
-    @KafkaListener(topics = "payment-cancel-topic", groupId = "test-cancel-group")
+    @KafkaListener(topics = "payment-refund-topic", groupId = "test-cancel-group")
     public void listenFailMessage(String message) {
         this.receivedMessage = message;
         this.latch.countDown();
     }
 
     @Test
-    @DisplayName("결제 취소 (예: 재고 없음, 주문 취소 등) 시, 결제 상태를 CANCELED로 변경하고 오더 서버로 결재 취소 이벤트를 발행한다.")
+    @DisplayName("고객 요청 결제 취소시, 결제 상태를 CANCELED로 변경하고 오더 서버로 결재 취소 이벤트를 발행한다.")
     void paymentIntegrationFlow_Fail() throws Exception {
         // Given: DB에 결제 대기 상태 데이터 세팅
         Long orderId = 100L;
@@ -74,11 +76,11 @@ public class PaymentCancelIntegrationTest {
         paymentRepository.save(pendingPayment);
 
         // Given: 상품 서버에서 던질 메시지 준비 (입구는 똑같음)
-        StockDecrementedEvent event = new StockDecrementedEvent(orderId);
+        PaymentCancelEvent event = new PaymentCancelEvent(orderId, CancelReason.CUSTOMER_CANCEL);
         String message = objectMapper.writeValueAsString(event);
 
         // When: 결제 서버로 메시지 발송 (결제 로직 시작)
-        kafkaTemplate.send("order-cancel-topic", message);
+        kafkaTemplate.send("payment-cancel-topic", message);
 
         // 비동기 통신 대기: 실패 로직이 돌아가고 취소 메시지가 튀어나올 때까지 대기
         boolean messageReceived = latch.await(1, TimeUnit.SECONDS);

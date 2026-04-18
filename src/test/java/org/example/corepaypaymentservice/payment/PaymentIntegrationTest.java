@@ -3,9 +3,11 @@ package org.example.corepaypaymentservice.payment;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.corepaypaymentservice.payment.application.CancelReason;
 import org.example.corepaypaymentservice.payment.domain.Payment;
 import org.example.corepaypaymentservice.payment.domain.PaymentState;
 import org.example.corepaypaymentservice.payment.infrastructure.db.PaymentRepository;
+import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentCancelEvent;
 import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.StockDecrementedEvent;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +69,7 @@ public class PaymentIntegrationTest {
         this.latch.countDown(); // 메시지를 받으면 대기 상태를 풀어줍니다.
     }
 
-    @KafkaListener(topics = "payment-faile-topic", groupId = "test-group")
+    @KafkaListener(topics = "payment-failed-topic", groupId = "test-group")
     public void Failed_listenTestMessage(String message) {
         this.receivedMessage = message;
         this.latch.countDown(); // 메시지를 받으면 대기 상태를 풀어줍니다.
@@ -104,7 +106,7 @@ public class PaymentIntegrationTest {
         
     }
     @Test
-    @DisplayName("상품 서버에서 재고 차감 성공 이벤트가 오면, 결제를 완료하고 오더 서버로 이벤트를 발행한다.")
+    @DisplayName("오더 서버에서 고객 요청 주문 취로인한 결재 취소")
     void paymentIntegrationFlow_Failed() throws Exception {
         // Given: DB에 결제 대기 상태 데이터 세팅
         Long orderId = 100L;
@@ -123,7 +125,7 @@ public class PaymentIntegrationTest {
         // 비동기 통신이므로, 우리 가짜 컨슈머가 메시지를 받을 때까지 최대 1초간 기다림
         boolean messageReceived = latch.await(1, TimeUnit.SECONDS);
 
-        // Then 1: DB 검증 (결제 상태가 SUCCESS로 변경되었는가?)
+        // Then 1: DB 검증 (결제 상태가 FAILED로 변경되었는가?)
         Payment updatedPayment = paymentRepository.findByOrderId(orderId).orElseThrow();
         assertThat(updatedPayment.getState()).isEqualTo(PaymentState.FAILED);
 
