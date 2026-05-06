@@ -31,9 +31,8 @@ public class StockEventConsumer {
             CreatedPaymentCommand command = CreatedPaymentCommand.builder()
                     .orderId(event.orderId())
                     .userId(event.userId())
-                    .productId(event.productId())
                     .totalPrice(event.totalPrice())
-                    .amount(event.amount())
+                    .items(event.items())
                     .build();
 
             paymentService.creat(command);

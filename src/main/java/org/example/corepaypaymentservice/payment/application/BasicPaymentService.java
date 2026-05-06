@@ -12,9 +12,12 @@ import org.example.corepaypaymentservice.payment.presentation.dto.res.PaymentDto
 import org.example.corepaypaymentservice.payment.domain.Payment;
 import org.example.corepaypaymentservice.payment.infrastructure.db.PaymentRepository;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -25,6 +28,9 @@ public class BasicPaymentService implements PaymentService{
 
     private final PaymentRepository paymentRepository;
     private final ApplicationEventPublisher publisher;
+    private final StringRedisTemplate redisTemplate;
+
+    private static final Duration LOCK_TTL = Duration.ofMinutes(10);
 
     @Override
     @Transactional
@@ -38,42 +44,39 @@ public class BasicPaymentService implements PaymentService{
     @Override
     @Transactional
     public void processPayment(ProcessPaymentCommand command) {
-        Payment payment = paymentRepository.findByOrderId(command.orderId())
-                .orElseThrow(()-> new RuntimeException("결재를 진행할 주문을 찾을 수 없습니다. OrderId: "+command.orderId()));
+        if (isDuplicateEvent(command.orderId())) {
+            log.warn("이미 처리 중이거나 완료된 결제 요청입니다. OrderId: {}", command.orderId());
+            return;
+        }
 
+        Payment payment = null;
 
         try {
+            // 2. DB 조회
+            payment = paymentRepository.findByOrderId(command.orderId())
+                    .orElseThrow(() -> new RuntimeException("결제를 진행할 주문을 찾을 수 없습니다. OrderId: " + command.orderId()));
 
-            // 외부 PG사 결제 API 호출 (가상)
-            // boolean isSuccess = pgClient.pay(command.amount(), ...);
-            boolean isSuccess = ThreadLocalRandom.current().nextBoolean(); //임시 50% 확률로 true 또는 false 반환
+            // 3. 외부 PG사 결제 API 호출 (가상)
+            boolean isSuccess = ThreadLocalRandom.current().nextBoolean();
 
-            // PG사 응답 결과에 따른 성공/실패 분기 처리
+            // 4. 비즈니스 로직에 의한 성공/실패 분기
             if (isSuccess) {
-                payment.success();
-                PaymentCompletedEvent event = PaymentCompletedEvent.builder().orderId(payment.getOrderId()).build();
-                publisher.publishEvent(event);
+                handlePaymentSuccess(payment);
             } else {
-                payment.failed();
-                PaymentFailedEvent event = PaymentFailedEvent.builder()
-                        .orderId(payment.getOrderId())
-                        .reason(CancelReason.PAYMENT_FAILED)
-                        .build();
-
-                publisher.publishEvent(event);
+                // 💡 헬퍼 메서드에 command.orderId()를 직접 전달
+                handlePaymentFailure(command.orderId(), payment, CancelReason.PAYMENT_FAILED);
             }
 
         } catch (Exception e) {
-            // PG사 서버 다운, 네트워크 에러 등의 예외 발생 시 실패 처리
-            payment.failed();
-            PaymentFailedEvent event = PaymentFailedEvent.builder()
-                    .orderId(payment.getOrderId())
-                    .reason(CancelReason.PAYMENT_FAILED)
-                    .build();
-            log.info("결제 시스템 통신 에러: {}", e.getMessage());
-            publisher.publishEvent(event);
+            // 5. 시스템 에러 발생 시 처리
+            log.error("결제 처리 중 시스템 에러 발생. OrderId: {}, 사유: {}", command.orderId(), e.getMessage(), e);
+
+            // 💡 지훈님 아이디어 적용: 널 체크와 이벤트 발행을 한 메서드에서 깔끔하게 통합 처리!
+            handlePaymentFailure(command.orderId(), payment, CancelReason.PAYMENT_FAILED);
+
+            releaseLock(command.orderId());
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
         }
-        paymentRepository.save(payment);
     }
 
     @Override
@@ -108,5 +111,52 @@ public class BasicPaymentService implements PaymentService{
     @Transactional
     public void delete(Long id) {
         paymentRepository.deleteById(id);
+    }
+
+
+    private void handlePaymentSuccess(Payment payment) {
+        payment.success();
+        PaymentCompletedEvent event = PaymentCompletedEvent.builder()
+                .orderId(payment.getOrderId())
+                .build();
+        paymentRepository.save(payment);
+        publisher.publishEvent(event);
+        log.info("결제 성공 이벤트 발행 완료. OrderId: {}", payment.getOrderId());
+    }
+
+
+    private void handlePaymentFailure(Long orderId, Payment payment, CancelReason reason) {
+        // 1. 엔티티가 정상적으로 조회된 상태라면 상태를 Failed로 업데이트 (NPE 완벽 방어)
+        if (payment != null) {
+            payment.failed();
+            paymentRepository.save(payment);
+        }
+
+        // 2. 엔티티 존재 여부와 무관하게(결제가 안 만들어졌어도), 파라미터로 받은 orderId로 취소 이벤트 발행!
+        PaymentFailedEvent event = PaymentFailedEvent.builder()
+                .orderId(orderId)
+                .reason(reason)
+                .build();
+        publisher.publishEvent(event);
+
+        log.info("결제 실패/에러 이벤트 발행 완료. OrderId: {}, 사유: {}", orderId, reason);
+    }
+
+
+
+    private boolean isDuplicateEvent(Long orderId) {
+        String lockKey = "lock:payment:order:" + orderId;
+        Boolean isFirstRequest = redisTemplate.opsForValue().setIfAbsent(lockKey, "1", LOCK_TTL);
+
+        // setIfAbsent는 키가 없어서 세팅에 성공하면 true를 반환함.
+        // 따라서 성공(true)이 아니면 중복(true)이라는 뜻.
+        return Boolean.FALSE.equals(isFirstRequest);
+    }
+
+    private void releaseLock(Long orderId) {
+        // 결제 처리 중 예외가 발생했을 때, 카프카 재처리를 위해 락을 해제합니다.
+        String lockKey = "lock:payment:order:" + orderId;
+        redisTemplate.delete(lockKey);
+        log.info("결제 처리 실패로 인해 Redis 락을 해제했습니다. OrderId: {}", orderId);
     }
 }
