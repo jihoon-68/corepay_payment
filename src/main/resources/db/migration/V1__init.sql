@@ -1,7 +1,7 @@
 -- 4. 결제 (Payment) 테이블
 CREATE TABLE payment (
                          id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                         order_id BIGINT NOT NULL,   -- FK 제약조건 없이 논리적 관계만 유지
+                         order_id BIGINT NOT NULL UNIQUE,   -- FK 제약조건 없이 논리적 관계만 유지
                          state ENUM('READY', 'SUCCESS', 'FAILED', 'CANCELED') NOT NULL DEFAULT 'READY',
                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
