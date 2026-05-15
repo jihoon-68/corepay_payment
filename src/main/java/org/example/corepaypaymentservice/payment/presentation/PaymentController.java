@@ -17,13 +17,17 @@ public class PaymentController {
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<PaymentDto> getPayment(@PathVariable Long id) {
+    public ResponseEntity<PaymentDto> getPayment(
+            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable Long id) {
+
         return ResponseEntity.ok(paymentService.get(id));
     }
 
     @GetMapping
-    public ResponseEntity<List<PaymentDto>> getPaymentList() {
+    public ResponseEntity<List<PaymentDto>> getPaymentList(
+            @RequestHeader("X-User-Id") Long userId) {
+
         return ResponseEntity.ok(paymentService.getList());
     }
-
 }
