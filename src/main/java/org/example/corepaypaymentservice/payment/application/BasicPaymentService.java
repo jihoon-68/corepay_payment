@@ -89,7 +89,7 @@ public class BasicPaymentService implements PaymentService {
 
         payment.canceled();
         paymentRepository.save(payment);
-        ledgerRecord(command.orderId(),payment.getUserId(),payment.getTotalPrice(), LedgerType.PAYMENT);
+        ledgerRecord(command.orderId(),payment.getUserId(),payment.getTotalPrice(), LedgerType.CANCEL);
 
         if (command.reason().isNeedStockRestore()) {
             publisher.publishEvent(
