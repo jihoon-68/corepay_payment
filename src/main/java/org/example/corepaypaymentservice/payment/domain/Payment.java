@@ -24,6 +24,12 @@ public class Payment {
     @Column(nullable = false, unique = true)
     private Long orderId;
 
+    @Column(nullable = false)
+    private Long userId;
+
+    @Column(nullable = false)
+    private int totalPrice;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentState state;
@@ -37,8 +43,10 @@ public class Payment {
     private LocalDateTime updatedAt;
 
     @Builder
-    private Payment(Long orderId){
+    private Payment(Long orderId, Long userId, int totalPrice){
         this.orderId = orderId;
+        this.userId = userId;
+        this.totalPrice = totalPrice;
         this.state = PaymentState.READY;
     }
 
@@ -47,4 +55,6 @@ public class Payment {
     public void failed(){this.state = PaymentState.FAILED;}
 
     public void canceled(){this.state = PaymentState.CANCELED;}
+
+    public void cancelFailed(){this.state = PaymentState.CANCELED_FAILED;}
 }
