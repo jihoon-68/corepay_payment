@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentRefundEvent;
-import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentCompletedEvent;
-import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentFailedEvent;
 import org.slf4j.MDC;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -21,16 +19,6 @@ public class PaymentEventProducer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
-
-    // 1. 결제 최종 성공 시 오더 서버로 발송
-    public void sendPaymentCompletedEvent(PaymentCompletedEvent event) {
-        sendMessage("payment-completed-topic", event);
-    }
-
-    // 2. 결제 실패 시 오더 서버로 보상 트랜잭션(주문 취소) 발송
-    public void sendPaymentFailedEvent(PaymentFailedEvent event) {
-        sendMessage("payment-failed-topic", event);
-    }
 
     // 3. 결제 취소 결과 오더 서버로 발송
     public void sendPaymentCancelEvent(PaymentRefundEvent event){

@@ -5,11 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.corepaycommon.log.KafkaMdcHelper;
 import org.example.corepaypaymentservice.payment.application.PaymentService;
 import org.example.corepaypaymentservice.payment.application.command.CancelPaymentCommand;
-import org.example.corepaypaymentservice.payment.application.command.CreatedPaymentCommand;
-import org.example.corepaypaymentservice.payment.application.command.ProcessPaymentCommand;
 import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.PaymentCancelEvent;
-import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.OrderCreatedEvent;
-import org.example.corepaypaymentservice.payment.infrastructure.kafka.event.StockDecrementedEvent;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -18,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class StockEventConsumer {
+public class PaymentEventConsumer {
 
 
     private final PaymentService paymentService;
