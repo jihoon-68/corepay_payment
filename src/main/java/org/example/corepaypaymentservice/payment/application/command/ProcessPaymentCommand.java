@@ -4,6 +4,8 @@ import lombok.Builder;
 
 @Builder
 public record ProcessPaymentCommand(
-        Long orderId
+        Long orderId,
+        Long userId,
+        int totalPrice
 ) {
 }
