@@ -1,7 +1,5 @@
 package org.example.corepaypaymentservice.payment.infrastructure.kafka;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.corepaycommon.log.KafkaMdcHelper;
@@ -26,35 +24,8 @@ public class StockEventConsumer {
     private final PaymentService paymentService;
     private final KafkaMdcHelper kafkaMdcHelper;
 
-    @KafkaListener(topics = "order-created-topic", groupId = "payment-group")
-    public void consumeOrderCreatedEvent(@Payload String message, @Header(value = "X-Trace-Id", required = false) String traceId){
-
-        kafkaMdcHelper.processEventWithMdc(traceId, message , OrderCreatedEvent.class, event->{
-            CreatedPaymentCommand command = CreatedPaymentCommand.builder()
-                    .orderId(event.orderId())
-                    .userId(event.userId())
-                    .totalPrice(event.totalPrice())
-                    .items(event.items())
-                    .build();
-
-            paymentService.creat(command);
-        });
-
-    }
-
-    // 상품 서버가 발행한 재고 차감 성공 이벤트를 수신
-    @KafkaListener(topics = "stock-decremented-topic", groupId = "payment-group")
-    public void consumeStockDecrementedEvent(@Payload String message, @Header(value = "X-Trace-Id", required = false) String traceId) {
-
-        kafkaMdcHelper.processEventWithMdc(traceId, message, StockDecrementedEvent.class, event->{
-            ProcessPaymentCommand command = ProcessPaymentCommand.builder().orderId(event.orderId()).build();
-            paymentService.processPayment(command);
-        });
-
-    }
-
     // 오더 서버가 발행한 결재 취소 이벤트 수신
-    @KafkaListener(topics = "payment-cancel-topic", groupId = "payment-group")
+    @KafkaListener(topics = "payment-cancel-topic", groupId = "payment-group",concurrency = "2")
     public void consumeOrderCancelEvent(@Payload String message, @Header(value = "X-Trace-Id", required = false) String traceId){
 
         kafkaMdcHelper.processEventWithMdc(traceId, message, PaymentCancelEvent.class, event->{
