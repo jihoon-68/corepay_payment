@@ -1,6 +1,7 @@
 package org.example.corepaypaymentservice.payment.presentation;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.corepaypaymentservice.payment.application.command.ProcessPaymentCommand;
 import org.example.corepaypaymentservice.payment.presentation.dto.req.PaymentRequest;
 import org.example.corepaypaymentservice.payment.presentation.dto.res.PaymentDto;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
@@ -19,6 +21,7 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
+    @PostMapping("/pay")
     public ResponseEntity<PaymentResponse> pay(@RequestBody PaymentRequest request) {
         ProcessPaymentCommand command = ProcessPaymentCommand.builder()
                 .orderId(request.orderId())
@@ -28,6 +31,7 @@ public class PaymentController {
 
         PaymentResponse result = paymentService.pay(command);
 
+        log.info("결재 결과 {}", result.success());
         if (!result.success()) {
             return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(result);
         }
