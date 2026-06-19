@@ -3,7 +3,7 @@ CREATE TABLE payment (
                         id BIGINT AUTO_INCREMENT PRIMARY KEY,
                         order_id BIGINT NOT NULL UNIQUE,-- FK 제약조건 없이 논리적 관계만 유지
                         user_id BIGINT NOT NULL,
-                        totalPrice INT NOT NULL ,
+                        total_price INT NOT NULL ,
                         state ENUM('READY', 'SUCCESS', 'FAILED', 'CANCELED','CANCELED_FAILED') NOT NULL DEFAULT 'READY',
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
