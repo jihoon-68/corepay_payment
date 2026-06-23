@@ -25,6 +25,7 @@ public class PaymentEventHandler {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Async
     public void PaymentCancelEvent(PaymentRefundEvent event){
+        log.info("[이벤트 수신] PaymentRefundEvent orderId={}",event.orderId());
         saveOutbox("payment-refund-topic",event);
     }
 

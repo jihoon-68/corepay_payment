@@ -31,7 +31,6 @@ public class PaymentController {
 
         PaymentResponse result = paymentService.pay(command);
 
-        log.info("결재 결과 {}", result.success());
         if (!result.success()) {
             return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(result);
         }
