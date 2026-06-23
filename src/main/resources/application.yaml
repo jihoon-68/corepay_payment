@@ -1,6 +1,10 @@
 server:
   port: 8084
 
+outbox:
+  scheduler:
+    enabled: true
+
 spring:
   config:
     import: "optional:file:.env[.properties]"
